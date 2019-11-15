@@ -40,7 +40,11 @@ extern "C" {
 #else
 #define js_likely(x)     (x)
 #define js_unlikely(x)   (x)
+#ifdef _MSC_VER
+#define js_force_inline  __forceinline
+#else
 #define js_force_inline  inline
+#endif
 #define __js_printf_like(a, b)
 #endif
 
@@ -62,6 +66,14 @@ typedef uint32_t JSAtom;
 
 #ifndef JS_PTR64
 #define JS_NAN_BOXING
+#endif
+
+#ifndef CONFIG_VERSION
+#define CONFIG_VERSION "2019-10-27"
+#endif
+
+#ifdef _MSC_VER
+typedef size_t ssize_t;
 #endif
 
 enum {
