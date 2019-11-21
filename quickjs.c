@@ -721,7 +721,7 @@ typedef struct JSShapeProperty {
 typedef uint32_t JSShape_PropHashEnd_t;
 
 #ifdef _MSC_VER
-#define JSSHAPE_PROP_HASH_END(ptr, offset) (((JSShape_PropHashEnd_t*)(ptr))+(offset))
+#define JSSHAPE_PROP_HASH_END(ptr, offset) (((JSShape_PropHashEnd_t *)ptr)+(offset))
 #else
 #define JSSHAPE_PROP_HASH_END(ptr, offset) (ptr->prop_hash_end[offset])
 #endif
@@ -4165,9 +4165,13 @@ static no_inline int resize_properties(JSContext *ctx, JSShape **psh,
                sizeof(JSShape) + sizeof(sh->prop[0]) * old_sh->prop_count);
         new_hash_mask = new_hash_size - 1;
         sh->prop_hash_mask = new_hash_mask;
-        memset(JSSHAPE_PROP_HASH_END(sh, -new_hash_size), 0,
-               sizeof(JSShape_PropHashEnd_t) * new_hash_size);
-        for(i = 0, pr = sh->prop; i < sh->prop_count; i++, pr++) {
+				memset(sh_alloc, 0, sizeof(JSShape_PropHashEnd_t) * new_hash_size);
+
+				// FIXME: What is wrong with this memset?!
+				// memset(JSSHAPE_PROP_HASH_END(sh, -new_hash_size), 0,
+				//   sizeof(JSShape_PropHashEnd_t) * new_hash_size);
+
+				for(i = 0, pr = sh->prop; i < sh->prop_count; i++, pr++) {
             if (pr->atom != JS_ATOM_NULL) {
                 h = ((uintptr_t)pr->atom & new_hash_mask);
                 pr->hash_next = *JSSHAPE_PROP_HASH_END(sh, -h - 1);
