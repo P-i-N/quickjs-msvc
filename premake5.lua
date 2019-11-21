@@ -38,8 +38,6 @@ function GenerateCArray(srcFile, dstFile, arrayName, arraySizeName)
 	return true
 end
 
-GenerateCArray("repl.js", "qjsc_repl.c")
-
 -------------------------------------------------------------------------------
 
 workspace "quickjs-msvc"
@@ -105,11 +103,21 @@ project "quickjs"
 
 -------------------------------------------------------------------------------
 
+project "qjsc"
+	language "C"
+	kind "ConsoleApp"
+	links { "quickjs" }
+	files {
+		"qjsc.c"
+	}
+
+-------------------------------------------------------------------------------
+
 project "qjs"
 	language "C"
 	kind "ConsoleApp"
 	links { "quickjs" }
 	files {
 		"qjs.c",
-		"qjsc_repl.c"
+		"repl.c"
 	}

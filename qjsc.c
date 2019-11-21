@@ -27,10 +27,10 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <unistd.h>
 #include <errno.h>
 #if !defined(_WIN32)
 #include <sys/wait.h>
+#include <unistd.h>
 #endif
 
 #include "cutils.h"
@@ -505,10 +505,24 @@ int main(int argc, char **argv)
     namelist_add(&cmodule_list, "std", "std", 0);
     namelist_add(&cmodule_list, "os", "os", 0);
 
-    for(;;) {
-        c = getopt(argc, argv, "ho:cN:f:mxevM:p:");
-        if (c == -1)
-            break;
+#ifdef _MSC_VER
+		int optind = 1;
+		const char *optarg = NULL;
+		for (; optind < argc; ++optind) {
+			if (argv[optind][0] == '-' || argv[optind][0] == '/') {
+				c = argv[optind][1];
+				if (strchr("oNfMp", c)) {
+					optarg = argv[++optind];
+				}
+			}
+			else
+				break;
+#else
+		for (;;) {
+		 	c = getopt(argc, argv, "ho:cN:f:mxevM:p:");
+			if (c == -1)
+				break;
+#endif
         switch(c) {
         case 'h':
             help();
@@ -694,3 +708,4 @@ int main(int argc, char **argv)
     namelist_free(&init_module_list);
     return 0;
 }
+
