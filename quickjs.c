@@ -39,6 +39,27 @@
 
 #ifdef _MSC_VER
 #include <WinSock2.h>
+
+// From: https://stackoverflow.com/a/26085827
+int gettimeofday(struct timeval * tp, struct timezone * tzp)
+{
+	static const uint64_t EPOCH = ((uint64_t)116444736000000000ULL);
+
+	SYSTEMTIME  system_time;
+	FILETIME    file_time;
+	uint64_t    time;
+
+	GetSystemTime(&system_time);
+	SystemTimeToFileTime(&system_time, &file_time);
+	time = ((uint64_t)file_time.dwLowDateTime);
+	time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+	tp->tv_sec = (long)((time - EPOCH) / 10000000L);
+	tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
+
+	return 0;
+}
+
 #else
 #include <sys/time.h>
 #endif
@@ -39667,7 +39688,7 @@ static uint64_t xorshift64star(uint64_t *pstate)
 static void js_random_init(JSContext *ctx)
 {
     struct timeval tv;
-    //gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     ctx->random_state = ((int64_t)tv.tv_sec * 1000000) + tv.tv_usec;
     /* the state must be non zero */
     if (ctx->random_state == 0)
@@ -39686,6 +39707,9 @@ static JSValue js_math_random(JSContext *ctx, JSValueConst this_val,
     return __JS_NewFloat64(ctx, u.d - 1.0);
 }
 
+double js_math_floor(double value) { return floor(value); }
+double js_math_ceil(double value) { return ceil(value); }
+
 static const JSCFunctionListEntry js_math_funcs[] = {
     JS_CFUNC_MAGIC_DEF("min", 2, js_math_min_max, 0 ),
     JS_CFUNC_MAGIC_DEF("max", 2, js_math_min_max, 1 ),
@@ -39694,8 +39718,8 @@ static const JSCFunctionListEntry js_math_funcs[] = {
 #else
     JS_CFUNC_SPECIAL_DEF("abs", 1, f_f, fabs ),
 #endif
-    JS_CFUNC_SPECIAL_DEF("floor", 1, f_f, floor ),
-    JS_CFUNC_SPECIAL_DEF("ceil", 1, f_f, ceil ),
+    JS_CFUNC_SPECIAL_DEF("floor", 1, f_f, js_math_floor ),
+    JS_CFUNC_SPECIAL_DEF("ceil", 1, f_f, js_math_ceil ),
     JS_CFUNC_SPECIAL_DEF("round", 1, f_f, js_math_round ),
     JS_CFUNC_SPECIAL_DEF("sqrt", 1, f_f, sqrt ),
 
@@ -39764,7 +39788,7 @@ static JSValue js___date_clock(JSContext *ctx, JSValueConst this_val,
 {
     int64_t d;
     struct timeval tv;
-    //gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     d = (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
     return JS_NewInt64(ctx, d);
 }
@@ -45939,7 +45963,7 @@ static JSValue get_date_string(JSContext *ctx, JSValueConst this_val,
 /* OS dependent: return the UTC time in ms since 1970. */
 static int64_t date_now(void) {
     struct timeval tv;
-    //gettimeofday(&tv, NULL);
+    gettimeofday(&tv, NULL);
     return (int64_t)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
 }
 
