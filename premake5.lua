@@ -45,7 +45,7 @@ workspace "quickjs-msvc"
 	location(path.join(".build", _ACTION))
 
 	-- Target architecture
-	architecture "x86"
+	architecture "x86_64"
 
 	-- Configuration settings
 	configurations { "Debug", "Release" }
@@ -73,7 +73,7 @@ workspace "quickjs-msvc"
 
 	filter { }
 		targetdir ".bin/%{cfg.longname}/"
-		defines { "WIN32", "_AMD64_" }
+		defines { "WIN32", "_AMD64_", "__x86_64__" }
 		exceptionhandling "Off"
 		rtti "Off"
 		vectorextensions "AVX2"
