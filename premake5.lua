@@ -47,7 +47,7 @@ workspace "quickjs-msvc"
 	location(path.join(".build", _ACTION))
 
 	-- Target architecture
-	architecture "x86_64"
+	architecture "x86"
 
 	-- Configuration settings
 	configurations { "Debug", "Release" }
