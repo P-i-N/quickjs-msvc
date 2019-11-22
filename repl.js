@@ -66,7 +66,7 @@ import * as os from "os";
         bright_cyan:    "\x1b[36;1m",
         bright_white:   "\x1b[37;1m",
     };
-
+    
     var styles;
     if (config_numcalc) {
         styles = {
