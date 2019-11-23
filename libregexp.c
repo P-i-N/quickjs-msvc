@@ -107,10 +107,6 @@ static const REOpCode reopcode_info[REOP_COUNT] = {
 
 #define RE_HEADER_LEN 7
 
-static inline int is_digit(int c) {
-    return c >= '0' && c <= '9';
-}
-
 /* insert 'len' bytes at position 'pos' */
 static void dbuf_insert(DynBuf *s, int pos, int len)
 {
@@ -569,7 +565,7 @@ int lre_parse_escape(const uint8_t **pp, int allow_utf16)
         c -= '0';
         if (allow_utf16 == 2) {
             /* only accept \0 not followed by digit */
-            if (c != 0 || is_digit(*p))
+            if (c != 0 || isdigit(*p))
                 return -1;
         } else {
             /* parse a legacy octal sequence */
@@ -1235,7 +1231,7 @@ static int re_parse_term(REParseState *s, BOOL is_backward_dir)
     case '{':
         /* As an extension (see ES6 annex B), we accept '{' not
            followed by digits as a normal atom */
-        if (!is_digit(p[1])) {
+        if (!isdigit(p[1])) {
             if (s->is_utf16)
                 goto invalid_quant_count;
             goto parse_class_atom;
@@ -1378,7 +1374,7 @@ static int re_parse_term(REParseState *s, BOOL is_backward_dir)
             p += 2;
             c = 0;
             if (s->is_utf16) {
-                if (is_digit(*p)) {
+                if (isdigit(*p)) {
                     return re_parse_error(s, "invalid decimal escape in regular expression");
                 }
             } else {
@@ -1503,7 +1499,7 @@ static int re_parse_term(REParseState *s, BOOL is_backward_dir)
         case '{':
             /* As an extension (see ES6 annex B), we accept '{' not
                followed by digits as a normal atom */
-            if (!is_digit(p[1])) {
+            if (!isdigit(p[1])) {
                 if (s->is_utf16)
                     goto invalid_quant_count;
                 break;
@@ -1517,7 +1513,7 @@ static int re_parse_term(REParseState *s, BOOL is_backward_dir)
             quant_max = quant_min;
             if (*p == ',') {
                 p++;
-                if (is_digit(*p)) {
+                if (isdigit(*p)) {
                     quant_max = parse_digits(&p);
                     if (quant_max < 0 || quant_max < quant_min)
                         goto invalid_quant_count;
@@ -1729,7 +1725,7 @@ static int re_parse_disjunction(REParseState *s, BOOL is_backward_dir)
 }
 
 /* the control flow is recursive so the analysis can be linear */
-static int compute_stack_size(const uint8_t *bc_buf, int bc_buf_len)
+static int re_compute_stack_size(const uint8_t *bc_buf, int bc_buf_len)
 {
     int stack_size, stack_size_max, pos, opcode, len;
     uint32_t val;
@@ -1841,7 +1837,7 @@ uint8_t *lre_compile(int *plen, char *error_msg, int error_msg_size,
         goto error;
     }
     
-    stack_size = compute_stack_size(s->byte_code.buf, s->byte_code.size);
+    stack_size = re_compute_stack_size(s->byte_code.buf, s->byte_code.size);
     if (stack_size < 0) {
         re_parse_error(s, "too many imbricated quantifiers");
         goto error;

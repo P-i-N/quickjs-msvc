@@ -1248,10 +1248,6 @@ static inline void js_dbuf_init(JSContext *ctx, DynBuf *s)
     dbuf_init2(s, ctx->rt, (DynBufReallocFunc *)js_realloc_rt);
 }
 
-static inline int is_digit(int c) {
-    return c >= '0' && c <= '9';
-}
-
 typedef struct JSClassShortDef {
     JSAtom class_name;
     JSClassFinalizer *finalizer;
@@ -2649,7 +2645,7 @@ JSAtom JS_NewAtomLen(JSContext *ctx, const char *str, size_t len)
 {
     JSValue val;
 
-    if (len == 0 || !is_digit(*str)) {
+    if (len == 0 || !isdigit(*str)) {
         JSAtom atom = __JS_FindAtom(ctx->rt, str, len, JS_ATOM_TYPE_STRING);
         if (atom)
             return atom;
@@ -9587,14 +9583,14 @@ static JSValue js_atod(JSContext *ctx, const char *str, const char **pp,
         }
     } else {
         p_start = p;
-        while (is_digit((uint8_t)*p)
+        while (isdigit((uint8_t)*p)
            ||  (*p == sep && (p != p_start + 1 || p[-1] != '0') &&
-               is_digit((uint8_t)p[1]))) {
+               isdigit((uint8_t)p[1]))) {
             p++;
         }
-        if (*p == '.' && (p > p_start || is_digit((uint8_t)p[1]))) {
+        if (*p == '.' && (p > p_start || isdigit((uint8_t)p[1]))) {
             p++;
-            while (is_digit((uint8_t)*p) || (*p == sep && is_digit((uint8_t)p[1])))
+            while (isdigit((uint8_t)*p) || (*p == sep && isdigit((uint8_t)p[1])))
                 p++;
         }
         if (p > p_start && (*p == 'e' || *p == 'E')) {
@@ -9604,9 +9600,9 @@ static JSValue js_atod(JSContext *ctx, const char *str, const char **pp,
             } else if (*p1 == '-') {
                 p1++;
             }
-            if (is_digit((uint8_t)*p1)) {
+            if (isdigit((uint8_t)*p1)) {
                 p = p1 + 1;
-                while (is_digit((uint8_t)*p) || (*p == sep && is_digit((uint8_t)p[1])))
+                while (isdigit((uint8_t)*p) || (*p == sep && isdigit((uint8_t)p[1])))
                     p++;
             }
         }
@@ -19603,7 +19599,7 @@ static __exception int next_token(JSParseState *s)
         break;
     case '0':
         /* in strict or JSON parsing mode, octal literals are not accepted */
-        if (is_digit(p[1]) && (!s->cur_func ||
+        if (isdigit(p[1]) && (!s->cur_func ||
                                (s->cur_func->js_mode & JS_MODE_STRICT))) {
             js_parse_error(s, "octal literals are deprecated in strict mode");
             goto fail;
